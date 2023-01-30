@@ -1,107 +1,88 @@
-function init (){
-  
-  	//variables
+class Calculadora {
+    sumar(num1, num2) {
+        return num1 + num2;
+    }
 
-  	var operandoa;
-  	var operandob; 
-  	var operacion;
+    restar(num1, num2) {
+        return num1 - num2;
+    }
 
+    dividir(num1, num2) {
+        return num1 / num2;
+    }
 
-  	var resultado = document.getElementById('RESULTADO');
-	var reset = document.getElementById('reset');
-	var suma = document.getElementById('suma');
-	var resta = document.getElementById('resta');
-	var division = document.getElementById('division');
-	var multiplicacion = document.getElementById('multiplicacion');
-	var igual = document.getElementById('igual');
-	var uno = document.getElementById('uno');
-	var dos = document.getElementById('dos');
-	var tres = document.getElementById('tres');
-	var cuatro = document.getElementById('cuatro');
-	var cinco = document.getElementById('cinco');
-	var seis = document.getElementById('seis');
-	var siete = document.getElementById('siete');
-	var ocho = document.getElementById('ocho');
-	var nueve = document.getElementById('nueve');
-	var cero = document.getElementById('cero');
-	
-	//eventos
+    multiplicar(num1, num2) {
+        return num1 * num2;
+    }
+} 
 
-	uno.onclick = function(event){
-		resultado.textContent = resultado.textContent + "1";}
-	dos.onclick = function(event){
-		resultado.textContent = resultado.textContent + "2";}
-	tres.onclick = function(event){
-		resultado.textContent = resultado.textContent + "3";}
-	cuatro.onclick = function(event){
-		resultado.textContent = resultado.textContent + "4";}
-	cinco.onclick = function(event){
-		resultado.textContent = resultado.textContent + "5";}
-	seis.onclick = function(event){
-		resultado.textContent = resultado.textContent + "6";}
-	siete.onclick = function(event){
-		resultado.textContent = resultado.textContent + "7";}
-	ocho.onclick = function(event){
-		resultado.textContent = resultado.textContent + "8";}
-	nueve.onclick = function(event){
-		resultado.textContent = resultado.textContent + "9";}
-	cero.onclick = function(event){
-		resultado.textContent = resultado.textContent + "0";}
-	reset.onclick = function(event){
-		resetear();}
-	suma.onclick = function(event){
-		operandoa = resultado.textContent;
-		operacion = "+";
-		limpiar();}
-	resta.onclick = function(event){
-		operandoa = resultado.textContent;
-		operacion = "-";
-		limpiar();}
-	division.onclick = function(event){
-		operandoa = resultado.textContent;
-		operacion = "/";
-		limpiar();}
-	multiplicacion.onclick = function(event){
-		operandoa = resultado.textContent;
-		operacion = "*";
-		limpiar();}
-	igual.onclick = function(event){
-		operandob = resultado.textContent;
-		resolver();}
+class Display {
+    constructor(displayValorAnterior, displayValorActual) {
+        this.displayValorActual = displayValorActual;
+        this.displayValorAnterior = displayValorAnterior;
+        this.calculador = new Calculadora();
+        this.tipoOperacion = undefined;
+        this.valorActual = '';
+        this.valorAnterior = '';
+        this.signos = {
+            sumar: '+',
+            dividir: '%',
+            multiplicar: 'x',
+            restar: '-', 
+        }
+    }
 
-		function limpiar(){
-			resultado.textContent = "";
-		}
+    borrar() {
+        this.valorActual = this.valorActual.toString().slice(0,-1);
+        this.imprimirValores();
+    }
 
-		function resetear(){
-			resultado.textContent = "";
-			operandoa = 0;
-			operandob = 0;
-			operacion = "";
-		}
+    borrarTodo() {
+        this.valorActual = '';
+        this.valorAnterior = '';
+        this.tipoOperacion = undefined;
+        this.imprimirValores();
+    }
 
-		function resolver (){
-			var res = 0;
-			switch(operacion){
-				case "+": 
-					res = parseFloat(operandoa) + parseFloat(operandob); 
-						break;
+    computar(tipo) {
+        this.tipoOperacion !== 'igual' && this.calcular();
+        this.tipoOperacion = tipo;
+        this.valorAnterior = this.valorActual || this.valorAnterior;
+        this.valorActual = '';
+        this.imprimirValores();
+    }
 
-				case "-": 
-					res = parseFloat(operandoa) - parseFloat(operandob); 
-						break;
+    agregarNumero(numero) {
+        if(numero === '.' && this.valorActual.includes('.')) return
+        this.valorActual = this.valorActual.toString() + numero.toString();
+        this.imprimirValores();
+    }
 
-				case "*": 
-					res = parseFloat(operandoa) * parseFloat(operandob); 
-						break;
+    imprimirValores() {
+        this.displayValorActual.textContent = this.valorActual;
+        this.displayValorAnterior.textContent = `${this.valorAnterior} ${this.signos[this.tipoOperacion] || ''}`;
+    }
 
-				case "/": 
-					res = parseFloat(operandoa) / parseFloat(operandob); 
-						break;	
-			}
-			resetear();
-			resultado.textContent = res; 
-		}	
-	
+    calcular() {
+        const valorAnterior = parseFloat(this.valorAnterior);
+        const valorActual = parseFloat(this.valorActual);
 
+        if( isNaN(valorActual)  || isNaN(valorAnterior) ) return
+        this.valorActual = this.calculador[this.tipoOperacion](valorAnterior, valorActual);
+    }
 }
+
+const displayValorAnterior = document.getElementById('valor-anterior');
+const displayValorActual = document.getElementById('valor-actual');
+const botonesNumeros = document.querySelectorAll('.numero');
+const botonesOperadores = document.querySelectorAll('.operador');
+
+const display = new Display(displayValorAnterior, displayValorActual);
+
+botonesNumeros.forEach(boton => {
+    boton.addEventListener('click', () => display.agregarNumero(boton.innerHTML));
+});
+
+botonesOperadores.forEach(boton => {
+    boton.addEventListener('click', () => display.computar(boton.value))
+});
